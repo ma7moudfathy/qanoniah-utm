@@ -1,0 +1,867 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Qanoniah UTM Builder</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --navy: #0B2545;
+    --teal: #0D7377;
+    --teal-light: #14A085;
+    --teal-bg: #E8F5F5;
+    --border: #D1D9E0;
+    --text: #1A2332;
+    --muted: #6B7A8D;
+    --warn-bg: #FFF8E1;
+    --warn-border: #F59E0B;
+    --error: #DC2626;
+    --success: #059669;
+    --radius: 8px;
+    --shadow: 0 1px 3px rgba(0,0,0,.08), 0 4px 16px rgba(0,0,0,.06);
+  }
+
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: #F4F7FA;
+    color: var(--text);
+    min-height: 100vh;
+    padding: 0 0 60px;
+  }
+
+  header {
+    background: var(--navy);
+    padding: 18px 24px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .logo {
+    width: 34px; height: 34px;
+    background: var(--teal);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .logo svg { width: 18px; height: 18px; fill: #fff; }
+  header h1 { color: #fff; font-size: 16px; font-weight: 600; line-height: 1.3; }
+  header p  { color: #94A3B8; font-size: 13px; margin-top: 1px; }
+
+  .container {
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: 24px 16px 0;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+  @media (max-width: 760px) {
+    .container { grid-template-columns: 1fr; }
+  }
+
+  .card {
+    background: #fff;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 24px;
+  }
+
+  .card-title {
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 20px;
+  }
+
+  .field { margin-bottom: 18px; }
+  .field:last-child { margin-bottom: 0; }
+
+  label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 6px;
+  }
+  label span.req { color: var(--teal); margin-left: 2px; }
+  label span.opt { color: var(--muted); font-weight: 400; font-size: 12px; margin-left: 4px; }
+
+  input[type="text"], input[type="url"], select {
+    width: 100%;
+    padding: 9px 12px;
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius);
+    font-size: 14px;
+    color: var(--text);
+    background: #fff;
+    transition: border-color .15s;
+    outline: none;
+    font-family: inherit;
+  }
+  input[type="text"]:focus, input[type="url"]:focus, select:focus {
+    border-color: var(--teal);
+    box-shadow: 0 0 0 3px rgba(13,115,119,.12);
+  }
+  input.error { border-color: var(--error); }
+  .err-msg { font-size: 12px; color: var(--error); margin-top: 4px; display: none; }
+  .err-msg.show { display: block; }
+
+  .help-text { font-size: 12px; color: var(--muted); margin-top: 5px; line-height: 1.5; }
+  .help-text code { background: #F0F4F8; padding: 1px 5px; border-radius: 4px; font-size: 11px; }
+
+  .preview-slug {
+    font-size: 12px;
+    color: var(--teal);
+    margin-top: 5px;
+    font-family: 'Courier New', monospace;
+    min-height: 16px;
+    word-break: break-all;
+  }
+
+  /* Custom input row */
+  .custom-row {
+    display: none;
+    gap: 8px;
+    margin-top: 8px;
+    align-items: center;
+  }
+  .custom-row.show { display: flex; }
+  .custom-row input { flex: 1; }
+  .btn-cancel-custom {
+    background: none; border: none; cursor: pointer;
+    color: var(--muted); font-size: 18px; line-height: 1;
+    padding: 4px; flex-shrink: 0;
+  }
+  .btn-cancel-custom:hover { color: var(--error); }
+
+  /* Warning banner */
+  .warn-banner {
+    display: none;
+    background: var(--warn-bg);
+    border: 1px solid var(--warn-border);
+    border-radius: var(--radius);
+    padding: 12px 14px;
+    font-size: 13px;
+    line-height: 1.5;
+    margin-bottom: 18px;
+  }
+  .warn-banner.show { display: block; }
+  .warn-banner strong { color: #92400E; }
+  .btn-strip {
+    display: inline-block;
+    margin-top: 8px;
+    background: var(--warn-border);
+    color: #fff;
+    border: none;
+    padding: 5px 12px;
+    border-radius: 5px;
+    font-size: 12px;
+    cursor: pointer;
+    font-family: inherit;
+  }
+  .btn-strip:hover { background: #D97706; }
+
+  /* Action row */
+  .action-row {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+  }
+  .btn-primary {
+    flex: 1;
+    background: var(--teal);
+    color: #fff;
+    border: none;
+    padding: 11px 18px;
+    border-radius: var(--radius);
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+    transition: background .15s;
+  }
+  .btn-primary:hover { background: var(--teal-light); }
+  .btn-primary:disabled { background: #94A3B8; cursor: not-allowed; }
+  .btn-reset {
+    background: #fff;
+    color: var(--muted);
+    border: 1.5px solid var(--border);
+    padding: 11px 16px;
+    border-radius: var(--radius);
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+    transition: border-color .15s, color .15s;
+  }
+  .btn-reset:hover { border-color: var(--navy); color: var(--navy); }
+
+  /* Output card */
+  .output-url {
+    font-family: 'Courier New', monospace;
+    font-size: 12.5px;
+    background: var(--teal-bg);
+    border: 1.5px solid var(--teal);
+    border-radius: var(--radius);
+    padding: 12px 14px;
+    word-break: break-all;
+    line-height: 1.6;
+    color: var(--navy);
+    min-height: 52px;
+  }
+  .output-placeholder { color: var(--muted); font-style: italic; font-family: inherit; }
+
+  .output-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 12px;
+    flex-wrap: wrap;
+  }
+  .btn-copy {
+    background: var(--navy);
+    color: #fff;
+    border: none;
+    padding: 9px 20px;
+    border-radius: var(--radius);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+    transition: background .15s;
+    flex: 1;
+  }
+  .btn-copy:hover { background: #1a3a5c; }
+  .btn-copy.copied { background: var(--success); }
+  .btn-qr {
+    background: #fff;
+    color: var(--navy);
+    border: 1.5px solid var(--border);
+    padding: 9px 16px;
+    border-radius: var(--radius);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+    transition: border-color .15s;
+  }
+  .btn-qr:hover { border-color: var(--teal); color: var(--teal); }
+
+  /* Param table */
+  .param-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 16px;
+    font-size: 13px;
+  }
+  .param-table th {
+    text-align: left;
+    padding: 6px 10px;
+    background: #F4F7FA;
+    color: var(--muted);
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+  }
+  .param-table td {
+    padding: 7px 10px;
+    border-top: 1px solid var(--border);
+    color: var(--text);
+  }
+  .param-table td:first-child { color: var(--muted); font-size: 12px; }
+  .param-table td:last-child { font-family: 'Courier New', monospace; font-size: 12px; color: var(--navy); font-weight: 600; }
+  .param-table tr:hover td { background: var(--teal-bg); }
+
+  /* QR modal */
+  .qr-modal {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,.45);
+    z-index: 100;
+    align-items: center;
+    justify-content: center;
+  }
+  .qr-modal.show { display: flex; }
+  .qr-box {
+    background: #fff;
+    border-radius: 12px;
+    padding: 28px;
+    text-align: center;
+    box-shadow: 0 20px 60px rgba(0,0,0,.25);
+    max-width: 320px;
+    width: 100%;
+  }
+  .qr-box h3 { font-size: 15px; color: var(--navy); margin-bottom: 16px; }
+  .qr-box img { width: 200px; height: 200px; border: 4px solid var(--teal-bg); border-radius: 8px; }
+  .btn-close-qr {
+    margin-top: 16px;
+    display: block;
+    width: 100%;
+    padding: 9px;
+    background: #F4F7FA;
+    border: none;
+    border-radius: var(--radius);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    color: var(--text);
+    font-family: inherit;
+  }
+  .btn-close-qr:hover { background: var(--border); }
+
+  /* Recent links */
+  .recent-empty { font-size: 13px; color: var(--muted); text-align: center; padding: 20px 0; }
+  .recent-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 10px 0;
+    border-top: 1px solid var(--border);
+  }
+  .recent-item:first-child { border-top: none; }
+  .recent-info { flex: 1; min-width: 0; }
+  .recent-campaign { font-size: 13px; font-weight: 600; color: var(--navy); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .recent-url { font-size: 11px; color: var(--muted); font-family: 'Courier New', monospace; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 2px; }
+  .recent-ts { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .btn-recopy {
+    flex-shrink: 0;
+    background: var(--teal-bg);
+    color: var(--teal);
+    border: none;
+    padding: 5px 10px;
+    border-radius: 5px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+    white-space: nowrap;
+    margin-top: 2px;
+  }
+  .btn-recopy:hover { background: var(--teal); color: #fff; }
+  .btn-recopy.copied { background: var(--success); color: #fff; }
+
+  /* Help section */
+  .help-toggle {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--teal);
+    padding: 0;
+    margin-bottom: 0;
+  }
+  .help-toggle .arrow { transition: transform .2s; display: inline-block; }
+  .help-toggle.open .arrow { transform: rotate(90deg); }
+  .help-body { display: none; margin-top: 14px; }
+  .help-body.show { display: block; }
+  .help-row { margin-bottom: 14px; font-size: 13px; line-height: 1.6; }
+  .help-row strong { color: var(--navy); }
+  .help-examples { margin-top: 12px; }
+  .example-block {
+    background: #F4F7FA;
+    border-radius: 6px;
+    padding: 10px 12px;
+    font-size: 12px;
+    margin-bottom: 8px;
+    line-height: 1.6;
+  }
+  .example-block .label { font-weight: 700; color: var(--teal); margin-bottom: 4px; }
+  .example-block code { background: #fff; padding: 1px 5px; border-radius: 3px; font-size: 11px; }
+
+  /* Full-width help card below grid */
+  .full-row {
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: 0 16px;
+    margin-top: 20px;
+  }
+
+  /* Keyboard hint */
+  .kbd-hint { font-size: 11px; color: var(--muted); text-align: center; margin-top: 8px; }
+  kbd { background: #F0F4F8; border: 1px solid var(--border); border-radius: 3px; padding: 1px 5px; font-size: 11px; font-family: inherit; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+  </div>
+  <div>
+    <h1>Qanoniah UTM Builder</h1>
+    <p>Generate consistent tracked links for every campaign.</p>
+  </div>
+</header>
+
+<div class="container">
+  <!-- LEFT: Form -->
+  <div>
+    <div class="card">
+      <div class="card-title">Campaign Parameters</div>
+
+      <!-- Warn banner -->
+      <div class="warn-banner" id="warnBanner">
+        <strong>⚠ Existing UTM parameters detected.</strong><br>
+        The destination URL already contains UTM parameters. Appending new ones may cause conflicts in HubSpot and GA4.
+        <br><button class="btn-strip" id="btnStrip">Strip existing UTMs and continue</button>
+      </div>
+
+      <!-- Destination URL -->
+      <div class="field">
+        <label for="destUrl">Destination URL <span class="req">*</span></label>
+        <input type="url" id="destUrl" placeholder="https://qanoniah.com/pricing" autocomplete="off">
+        <div class="err-msg" id="errUrl">Please enter a valid URL starting with https://</div>
+      </div>
+
+      <!-- utm_source -->
+      <div class="field">
+        <label for="srcSelect">utm_source <span class="req">*</span></label>
+        <select id="srcSelect">
+          <option value="">— select source —</option>
+          <option>google</option><option>meta</option><option>linkedin</option>
+          <option>bing</option><option>tiktok</option><option>youtube</option>
+          <option>outbound</option><option>newsletter</option><option>blog</option>
+          <option>partner</option><option>event</option><option>whatsapp</option>
+          <option>direct-mail</option>
+          <option value="__custom__">+ Add custom</option>
+        </select>
+        <div class="custom-row" id="srcCustomRow">
+          <input type="text" id="srcCustom" placeholder="e.g. podcast">
+          <button class="btn-cancel-custom" data-target="src" title="Cancel">×</button>
+        </div>
+        <div class="err-msg" id="errSrc">Required.</div>
+      </div>
+
+      <!-- utm_medium -->
+      <div class="field">
+        <label for="medSelect">utm_medium <span class="req">*</span></label>
+        <select id="medSelect">
+          <option value="">— select medium —</option>
+          <option>cpc</option><option>paid-social</option><option>display</option>
+          <option>email</option><option>social-organic</option><option>referral</option>
+          <option>affiliate</option><option>qr</option><option>sms</option>
+          <option>whatsapp</option><option>webinar</option>
+          <option value="__custom__">+ Add custom</option>
+        </select>
+        <div class="custom-row" id="medCustomRow">
+          <input type="text" id="medCustom" placeholder="e.g. podcast-ad">
+          <button class="btn-cancel-custom" data-target="med" title="Cancel">×</button>
+        </div>
+        <div class="err-msg" id="errMed">Required.</div>
+      </div>
+
+      <!-- utm_campaign -->
+      <div class="field">
+        <label for="campaign">utm_campaign <span class="req">*</span></label>
+        <input type="text" id="campaign" placeholder="e.g. H2 Renewals Push">
+        <div class="preview-slug" id="campaignPreview"></div>
+        <div class="err-msg" id="errCampaign">Required.</div>
+      </div>
+
+      <!-- utm_content -->
+      <div class="field">
+        <label for="content">utm_content <span class="opt">(optional)</span></label>
+        <input type="text" id="content" placeholder="e.g. hero-cta">
+        <div class="preview-slug" id="contentPreview"></div>
+        <div class="help-text">Use to differentiate ads/links within the same campaign (e.g. <code>hero-cta</code>, <code>footer-banner</code>, <code>rep-ahmed</code>).</div>
+      </div>
+
+      <!-- utm_term -->
+      <div class="field">
+        <label for="term">utm_term <span class="opt">(optional)</span></label>
+        <input type="text" id="term" placeholder="e.g. legal-ai-saudi">
+        <div class="preview-slug" id="termPreview"></div>
+        <div class="help-text">Paid search keyword, if applicable.</div>
+      </div>
+
+      <div class="action-row">
+        <button class="btn-primary" id="btnCopy">Copy URL</button>
+        <button class="btn-reset" id="btnReset">Reset</button>
+      </div>
+      <div class="kbd-hint"><kbd>⌘ Cmd</kbd> / <kbd>Ctrl</kbd> + <kbd>Enter</kbd> to copy</div>
+    </div>
+  </div>
+
+  <!-- RIGHT: Output -->
+  <div style="display:flex;flex-direction:column;gap:20px;">
+    <!-- Live URL output -->
+    <div class="card">
+      <div class="card-title">Generated URL</div>
+      <div class="output-url" id="outputUrl">
+        <span class="output-placeholder">Fill in the form to generate your UTM URL…</span>
+      </div>
+      <div class="output-actions">
+        <button class="btn-copy" id="btnCopy2">📋 Copy URL</button>
+        <button class="btn-qr" id="btnQr">QR Code</button>
+      </div>
+
+      <!-- Param breakdown table -->
+      <div id="paramTableWrap" style="display:none">
+        <table class="param-table">
+          <thead><tr><th>Parameter</th><th>Value</th></tr></thead>
+          <tbody id="paramTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Recent links -->
+    <div class="card">
+      <div class="card-title">Recent Links</div>
+      <div id="recentList"><p class="recent-empty">No links generated yet.</p></div>
+    </div>
+  </div>
+</div>
+
+<!-- Help section -->
+<div class="full-row">
+  <div class="card">
+    <button class="help-toggle" id="helpToggle">
+      <span class="arrow">▶</span> Naming Conventions Guide
+    </button>
+    <div class="help-body" id="helpBody">
+      <div class="help-row"><strong>source</strong> — Where the link lives. The platform or channel that hosts the link. Examples: <code>google</code>, <code>newsletter</code>, <code>linkedin</code></div>
+      <div class="help-row"><strong>medium</strong> — How it's delivered. The marketing mechanism or format. Examples: <code>cpc</code>, <code>email</code>, <code>paid-social</code></div>
+      <div class="help-row"><strong>campaign</strong> — The initiative or business goal. Maps to a specific push or promotion. Examples: <code>q3-enterprise-launch</code>, <code>ramadan-offer-2025</code></div>
+      <div class="help-row"><strong>content</strong> — The creative variant. Distinguish different ads, CTAs, or placements inside the same campaign. Examples: <code>hero-cta</code>, <code>sidebar-banner</code>, <code>rep-ahmed</code></div>
+      <div class="help-row"><strong>term</strong> — The paid keyword. Only needed for search campaigns. Examples: <code>legal-ai-ksa</code>, <code>contract-management-software</code></div>
+      <div class="help-examples">
+        <div class="example-block">
+          <div class="label">📢 Google Search Ad — Pricing Page</div>
+          source: <code>google</code> · medium: <code>cpc</code> · campaign: <code>q3-legal-ai-launch</code> · term: <code>legal-ai-saudi-arabia</code>
+        </div>
+        <div class="example-block">
+          <div class="label">📧 SDR Outbound Email — Demo Invite</div>
+          source: <code>outbound</code> · medium: <code>email</code> · campaign: <code>enterprise-demo-push</code> · content: <code>rep-khalid-sequence-2</code>
+        </div>
+        <div class="example-block">
+          <div class="label">📱 LinkedIn Paid — Two Creative Variants</div>
+          source: <code>linkedin</code> · medium: <code>paid-social</code> · campaign: <code>h2-renewals-push</code> · content: <code>video-testimonial</code> <em>vs</em> <code>static-feature-card</code>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- QR Modal -->
+<div class="qr-modal" id="qrModal">
+  <div class="qr-box">
+    <h3>QR Code</h3>
+    <img id="qrImg" src="" alt="QR Code">
+    <button class="btn-close-qr" id="btnCloseQr">Close</button>
+  </div>
+</div>
+
+<script>
+// ─── Utilities ────────────────────────────────────────────────────────────────
+
+const sanitize = v => v.trim().toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9\-_.]/g, '');
+
+const isValidUrl = v => {
+  try { const u = new URL(v); return u.protocol === 'https:'; }
+  catch { return false; }
+};
+
+const hasExistingUtms = url => {
+  try {
+    const u = new URL(url);
+    return ['utm_source','utm_medium','utm_campaign','utm_content','utm_term'].some(k => u.searchParams.has(k));
+  } catch { return false; }
+};
+
+const stripUtms = url => {
+  try {
+    const u = new URL(url);
+    ['utm_source','utm_medium','utm_campaign','utm_content','utm_term'].forEach(k => u.searchParams.delete(k));
+    return u.toString();
+  } catch { return url; }
+};
+
+const ts = () => {
+  const d = new Date();
+  return d.toLocaleDateString('en-GB', { day:'2-digit', month:'short' }) + ' ' +
+         d.toLocaleTimeString('en-GB', { hour:'2-digit', minute:'2-digit' });
+};
+
+// ─── DOM refs ─────────────────────────────────────────────────────────────────
+const $ = id => document.getElementById(id);
+
+const destUrl     = $('destUrl');
+const srcSelect   = $('srcSelect');
+const medSelect   = $('medSelect');
+const srcCustom   = $('srcCustom');
+const medCustom   = $('medCustom');
+const srcCustomRow = $('srcCustomRow');
+const medCustomRow = $('medCustomRow');
+const campaign    = $('campaign');
+const content     = $('content');
+const term        = $('term');
+const outputUrl   = $('outputUrl');
+const paramTableWrap = $('paramTableWrap');
+const paramTableBody = $('paramTableBody');
+const warnBanner  = $('warnBanner');
+const recentList  = $('recentList');
+
+// ─── Custom dropdown logic ─────────────────────────────────────────────────────
+
+srcSelect.addEventListener('change', () => {
+  srcCustomRow.classList.toggle('show', srcSelect.value === '__custom__');
+  if (srcSelect.value === '__custom__') { srcCustom.focus(); }
+  buildUrl();
+});
+medSelect.addEventListener('change', () => {
+  medCustomRow.classList.toggle('show', medSelect.value === '__custom__');
+  if (medSelect.value === '__custom__') { medCustom.focus(); }
+  buildUrl();
+});
+
+document.querySelectorAll('.btn-cancel-custom').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const t = btn.dataset.target;
+    if (t === 'src') { srcSelect.value = ''; srcCustomRow.classList.remove('show'); srcCustom.value = ''; }
+    if (t === 'med') { medSelect.value = ''; medCustomRow.classList.remove('show'); medCustom.value = ''; }
+    buildUrl();
+  });
+});
+
+srcCustom.addEventListener('blur', () => { srcCustom.value = sanitize(srcCustom.value); buildUrl(); });
+medCustom.addEventListener('blur', () => { medCustom.value = sanitize(medCustom.value); buildUrl(); });
+srcCustom.addEventListener('input', buildUrl);
+medCustom.addEventListener('input', buildUrl);
+
+// ─── Sanitize-on-blur for text fields ─────────────────────────────────────────
+
+[campaign, content, term].forEach(el => {
+  el.addEventListener('input', () => {
+    const preview = $(el.id + 'Preview');
+    const s = sanitize(el.value);
+    preview.textContent = s && s !== el.value.trim().toLowerCase().replace(/\s+/g,'-') ? '→ ' + s : (s ? '' : '');
+    buildUrl();
+  });
+  el.addEventListener('blur', () => {
+    el.value = sanitize(el.value);
+    $(el.id + 'Preview').textContent = '';
+    buildUrl();
+  });
+});
+
+// Show live slug preview while typing
+campaign.addEventListener('input', () => {
+  const s = sanitize(campaign.value);
+  $('campaignPreview').textContent = s ? '→ ' + s : '';
+  buildUrl();
+});
+
+// ─── Destination URL — detect existing UTMs ───────────────────────────────────
+
+destUrl.addEventListener('input', () => {
+  const v = destUrl.value.trim();
+  warnBanner.classList.toggle('show', isValidUrl(v) && hasExistingUtms(v));
+  buildUrl();
+});
+
+$('btnStrip').addEventListener('click', () => {
+  destUrl.value = stripUtms(destUrl.value.trim());
+  warnBanner.classList.remove('show');
+  buildUrl();
+});
+
+// ─── Build URL ────────────────────────────────────────────────────────────────
+
+function getSource() {
+  return srcSelect.value === '__custom__' ? sanitize(srcCustom.value) : srcSelect.value;
+}
+function getMedium() {
+  return medSelect.value === '__custom__' ? sanitize(medCustom.value) : medSelect.value;
+}
+
+function buildUrl() {
+  const base    = destUrl.value.trim();
+  const source  = getSource();
+  const medium  = getMedium();
+  const camp    = sanitize(campaign.value);
+  const cont    = sanitize(content.value);
+  const trm     = sanitize(term.value);
+
+  // Clear output if missing required fields or invalid URL
+  if (!base || !source || !medium || !camp || !isValidUrl(base)) {
+    outputUrl.innerHTML = '<span class="output-placeholder">Fill in the required fields to generate your UTM URL…</span>';
+    paramTableWrap.style.display = 'none';
+    return;
+  }
+
+  try {
+    const u = new URL(base);
+    u.searchParams.set('utm_source',   source);
+    u.searchParams.set('utm_medium',   medium);
+    u.searchParams.set('utm_campaign', camp);
+    if (cont) u.searchParams.set('utm_content', cont);
+    if (trm)  u.searchParams.set('utm_term',    trm);
+    const result = u.toString();
+    outputUrl.textContent = result;
+    renderTable({ source, medium, camp, cont, trm });
+    return result;
+  } catch { /* invalid URL */ }
+}
+
+function getCurrentUrl() {
+  const t = outputUrl.textContent;
+  return t && !t.includes('Fill in') ? t : null;
+}
+
+function renderTable({ source, medium, camp, cont, trm }) {
+  const rows = [
+    ['utm_source',   source],
+    ['utm_medium',   medium],
+    ['utm_campaign', camp],
+    ...(cont ? [['utm_content', cont]] : []),
+    ...(trm  ? [['utm_term',    trm]]  : []),
+  ];
+  paramTableBody.innerHTML = rows.map(([k,v]) =>
+    `<tr><td>${k}</td><td>${v}</td></tr>`
+  ).join('');
+  paramTableWrap.style.display = 'block';
+}
+
+// ─── Validation ───────────────────────────────────────────────────────────────
+
+function validate() {
+  let ok = true;
+
+  const showErr = (id, cond) => {
+    $(id).classList.toggle('show', cond);
+    if (cond) ok = false;
+  };
+
+  const urlVal = destUrl.value.trim();
+  showErr('errUrl', !urlVal || !isValidUrl(urlVal));
+  if (!urlVal || !isValidUrl(urlVal)) destUrl.classList.add('error');
+  else destUrl.classList.remove('error');
+
+  showErr('errSrc', !getSource());
+  showErr('errMed', !getMedium());
+  showErr('errCampaign', !sanitize(campaign.value));
+
+  return ok;
+}
+
+// ─── Copy ─────────────────────────────────────────────────────────────────────
+
+function copyUrl(btnEl) {
+  if (!validate()) return;
+  const url = getCurrentUrl();
+  if (!url) return;
+
+  navigator.clipboard.writeText(url).then(() => {
+    btnEl.textContent = btnEl === $('btnCopy') ? '✓ Copied!' : '✓ Copied!';
+    btnEl.classList.add('copied');
+    setTimeout(() => {
+      btnEl.textContent = btnEl === $('btnCopy') ? 'Copy URL' : '📋 Copy URL';
+      btnEl.classList.remove('copied');
+    }, 2000);
+    saveToRecent(url);
+  });
+}
+
+$('btnCopy').addEventListener('click',  () => copyUrl($('btnCopy')));
+$('btnCopy2').addEventListener('click', () => copyUrl($('btnCopy2')));
+
+// ─── Keyboard shortcut ────────────────────────────────────────────────────────
+document.addEventListener('keydown', e => {
+  if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') { e.preventDefault(); copyUrl($('btnCopy')); }
+});
+
+// ─── Reset ────────────────────────────────────────────────────────────────────
+$('btnReset').addEventListener('click', () => {
+  destUrl.value = '';
+  srcSelect.value = '';
+  medSelect.value = '';
+  srcCustom.value = '';
+  medCustom.value = '';
+  srcCustomRow.classList.remove('show');
+  medCustomRow.classList.remove('show');
+  campaign.value = '';
+  content.value = '';
+  term.value = '';
+  ['campaignPreview','contentPreview','termPreview'].forEach(id => $(id).textContent = '');
+  ['errUrl','errSrc','errMed','errCampaign'].forEach(id => $(id).classList.remove('show'));
+  destUrl.classList.remove('error');
+  warnBanner.classList.remove('show');
+  outputUrl.innerHTML = '<span class="output-placeholder">Fill in the form to generate your UTM URL…</span>';
+  paramTableWrap.style.display = 'none';
+});
+
+// ─── QR Code (qrserver.com free API) ─────────────────────────────────────────
+$('btnQr').addEventListener('click', () => {
+  const url = getCurrentUrl();
+  if (!url) { alert('Generate a valid URL first.'); return; }
+  const encoded = encodeURIComponent(url);
+  $('qrImg').src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encoded}`;
+  $('qrModal').classList.add('show');
+});
+$('btnCloseQr').addEventListener('click',  () => $('qrModal').classList.remove('show'));
+$('qrModal').addEventListener('click', e => { if (e.target === $('qrModal')) $('qrModal').classList.remove('show'); });
+
+// ─── Recent Links (localStorage, max 20) ─────────────────────────────────────
+const STORAGE_KEY = 'qanoniah_utm_recent';
+
+function loadRecent() {
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; }
+  catch { return []; }
+}
+
+function saveToRecent(url) {
+  const camp = sanitize(campaign.value) || 'untitled';
+  const items = loadRecent().filter(i => i.url !== url); // dedupe
+  items.unshift({ url, campaign: camp, ts: ts() });
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(items.slice(0, 20)));
+  renderRecent();
+}
+
+function renderRecent() {
+  const items = loadRecent();
+  if (!items.length) {
+    recentList.innerHTML = '<p class="recent-empty">No links generated yet.</p>';
+    return;
+  }
+  recentList.innerHTML = items.map((item, idx) => `
+    <div class="recent-item">
+      <div class="recent-info">
+        <div class="recent-campaign">${item.campaign}</div>
+        <div class="recent-url">${item.url}</div>
+        <div class="recent-ts">${item.ts}</div>
+      </div>
+      <button class="btn-recopy" data-idx="${idx}">Copy</button>
+    </div>
+  `).join('');
+
+  recentList.querySelectorAll('.btn-recopy').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const url = items[btn.dataset.idx].url;
+      navigator.clipboard.writeText(url).then(() => {
+        btn.textContent = '✓';
+        btn.classList.add('copied');
+        setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 2000);
+      });
+    });
+  });
+}
+
+renderRecent();
+
+// ─── Help toggle ──────────────────────────────────────────────────────────────
+$('helpToggle').addEventListener('click', () => {
+  const open = $('helpBody').classList.toggle('show');
+  $('helpToggle').classList.toggle('open', open);
+});
+</script>
+</body>
+</html>
