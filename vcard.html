@@ -3,7 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Qanoniah UTM Builder</title>
+<title>Qanoniah vCard QR Generator</title>
+<meta name="description" content="Free vCard QR code generator — turn contact details into a QR code that opens the add-contact screen prefilled on any phone. Download as PNG, SVG, PDF, or .vcf, generated in your browser.">
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -409,6 +410,41 @@
   .btn-qr-dl:hover { border-color: var(--teal); color: var(--teal); }
   .qr-dl-status { font-size: 11px; text-align: center; color: var(--success); margin-top: 8px; min-height: 14px; }
 </style>
+
+<style>
+  .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  @media (max-width: 520px) { .field-row { grid-template-columns: 1fr; } }
+
+  .qr-empty {
+    background: #F4F7FA; border: 1.5px dashed var(--border); border-radius: var(--radius);
+    padding: 40px 16px; text-align: center; font-size: 13px; color: var(--muted);
+  }
+  .qr-live { display: none; }
+  .qr-live.show { display: block; }
+  .qr-holder { display: flex; justify-content: center; background: #fff; border: 1.5px solid var(--border); border-radius: var(--radius); padding: 14px; }
+  .qr-holder svg { width: 220px; height: 220px; }
+  .qr-hint { font-size: 11px; text-align: center; color: var(--muted); margin-top: 8px; }
+
+  .qr-dl-label { font-size: 11px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--muted); text-align: center; margin: 16px 0 8px; }
+  .qr-dl-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .btn-qr-dl {
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+    padding: 9px 6px; background: #F4F7FA; border: 1.5px solid var(--border);
+    border-radius: 6px; font-size: 12px; font-weight: 600; color: var(--text);
+    cursor: pointer; font-family: inherit; transition: border-color .15s, color .15s;
+  }
+  .btn-qr-dl:hover { border-color: var(--teal); color: var(--teal); }
+  .qr-dl-status { font-size: 11px; text-align: center; color: var(--success); margin-top: 8px; min-height: 14px; }
+
+  .preview-row { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding: 5px 0; font-size: 13px; }
+  .preview-row.empty { opacity: .4; }
+  .preview-row .k { font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); font-weight: 700; }
+  .preview-row .v { color: var(--text); text-align: right; word-break: break-all; }
+
+  .tool-nav { font-size: 13px; color: var(--muted); }
+  .tool-nav a { color: var(--teal); text-decoration: none; font-weight: 600; }
+  .tool-nav a:hover { text-decoration: underline; }
+</style>
 </head>
 <body>
 
@@ -417,8 +453,8 @@
     <img src="qanoniah-logo.jpg" alt="Qanoniah logo">
   </div>
   <div>
-    <h1>Qanoniah UTM Builder</h1>
-    <p>Generate consistent tracked links for every campaign.</p>
+    <h1>Qanoniah vCard QR Generator</h1>
+    <p>Turn contact details into an add-to-contacts QR code.</p>
   </div>
 </header>
 
@@ -426,165 +462,83 @@
   <!-- LEFT: Form -->
   <div>
     <div class="card">
-      <div class="card-title">Campaign Parameters</div>
+      <div class="card-title">Contact Details</div>
 
-      <!-- Warn banner -->
-      <div class="warn-banner" id="warnBanner">
-        <strong>⚠ Existing UTM parameters detected.</strong><br>
-        The destination URL already contains UTM parameters. Appending new ones may cause conflicts in HubSpot and GA4.
-        <br><button class="btn-strip" id="btnStrip">Strip existing UTMs and continue</button>
-      </div>
-
-      <!-- Destination URL -->
       <div class="field">
-        <label for="destUrl">Destination URL <span class="req">*</span></label>
-        <input type="url" id="destUrl" placeholder="https://qanoniah.com/pricing" autocomplete="off">
-        <div class="err-msg" id="errUrl">Please enter a valid URL starting with https://</div>
-      </div>
-
-      <!-- utm_source -->
-      <div class="field">
-        <label for="srcSelect">utm_source <span class="req">*</span></label>
-        <select id="srcSelect">
-          <option value="">— select source —</option>
-          <option>google</option><option>meta</option><option>linkedin</option>
-          <option>bing</option><option>tiktok</option><option>youtube</option>
-          <option>outbound</option><option>newsletter</option><option>blog</option>
-          <option>partner</option><option>event</option><option>whatsapp</option>
-          <option>direct-mail</option>
-          <option value="__custom__">+ Add custom</option>
-        </select>
-        <div class="custom-row" id="srcCustomRow">
-          <input type="text" id="srcCustom" placeholder="e.g. podcast">
-          <button class="btn-cancel-custom" data-target="src" title="Cancel">×</button>
+        <div class="field-row">
+          <div>
+            <label for="firstName">First name <span class="req">*</span></label>
+            <input type="text" id="firstName" placeholder="e.g. Sarah" autocomplete="off">
+          </div>
+          <div>
+            <label for="lastName">Last name</label>
+            <input type="text" id="lastName" placeholder="e.g. Mohamed" autocomplete="off">
+          </div>
         </div>
-        <div class="err-msg" id="errSrc">Required.</div>
       </div>
 
-      <!-- utm_medium -->
       <div class="field">
-        <label for="medSelect">utm_medium <span class="req">*</span></label>
-        <select id="medSelect">
-          <option value="">— select medium —</option>
-          <option>cpc</option><option>paid-social</option><option>display</option>
-          <option>email</option><option>social-organic</option><option>referral</option>
-          <option>affiliate</option><option>qr</option><option>sms</option>
-          <option>whatsapp</option><option>webinar</option>
-          <option value="__custom__">+ Add custom</option>
-        </select>
-        <div class="custom-row" id="medCustomRow">
-          <input type="text" id="medCustom" placeholder="e.g. podcast-ad">
-          <button class="btn-cancel-custom" data-target="med" title="Cancel">×</button>
+        <label for="phone">Phone</label>
+        <input type="tel" id="phone" placeholder="+966 55 000 0000" autocomplete="off">
+      </div>
+
+      <div class="field">
+        <label for="email">Email</label>
+        <input type="email" id="email" placeholder="name@company.com" autocomplete="off">
+        <div class="err-msg" id="errEmail">Please enter a valid email address.</div>
+      </div>
+
+      <div class="field">
+        <div class="field-row">
+          <div>
+            <label for="title">Job title</label>
+            <input type="text" id="title" placeholder="e.g. Marketing Manager" autocomplete="off">
+          </div>
+          <div>
+            <label for="org">Company</label>
+            <input type="text" id="org" placeholder="e.g. Qanoniah" autocomplete="off">
+          </div>
         </div>
-        <div class="err-msg" id="errMed">Required.</div>
       </div>
 
-      <!-- utm_campaign -->
       <div class="field">
-        <label for="campaign">utm_campaign <span class="req">*</span></label>
-        <input type="text" id="campaign" placeholder="e.g. H2 Renewals Push">
-        <div class="preview-slug" id="campaignPreview"></div>
-        <div class="err-msg" id="errCampaign">Required.</div>
-      </div>
-
-      <!-- utm_content -->
-      <div class="field">
-        <label for="content">utm_content <span class="opt">(optional)</span></label>
-        <input type="text" id="content" placeholder="e.g. hero-cta">
-        <div class="preview-slug" id="contentPreview"></div>
-        <div class="help-text">Use to differentiate ads/links within the same campaign (e.g. <code>hero-cta</code>, <code>footer-banner</code>, <code>rep-ahmed</code>).</div>
-      </div>
-
-      <!-- utm_term -->
-      <div class="field">
-        <label for="term">utm_term <span class="opt">(optional)</span></label>
-        <input type="text" id="term" placeholder="e.g. legal-ai-saudi">
-        <div class="preview-slug" id="termPreview"></div>
-        <div class="help-text">Paid search keyword, if applicable.</div>
+        <label for="website">Website <span class="opt">(optional)</span></label>
+        <input type="url" id="website" placeholder="https://example.com" autocomplete="off">
       </div>
 
       <div class="action-row">
-        <button class="btn-primary" id="btnCopy">Copy URL</button>
+        <button class="btn-primary" id="btnVcf" disabled>⬇ Download .vcf</button>
         <button class="btn-reset" id="btnReset">Reset</button>
       </div>
-      <div class="kbd-hint"><kbd>⌘ Cmd</kbd> / <kbd>Ctrl</kbd> + <kbd>Enter</kbd> to copy</div>
+      <div class="kbd-hint">Add at least a first name to generate your QR code.</div>
     </div>
   </div>
 
   <!-- RIGHT: Output -->
   <div style="display:flex;flex-direction:column;gap:20px;min-width:0;">
-    <!-- Live URL output -->
     <div class="card">
-      <div class="card-title">Generated URL</div>
-      <div class="output-url" id="outputUrl">
-        <span class="output-placeholder">Fill in the form to generate your UTM URL…</span>
-      </div>
-      <div class="output-actions">
-        <button class="btn-copy" id="btnCopy2">📋 Copy URL</button>
-        <button class="btn-qr" id="btnQr">QR Code</button>
-      </div>
+      <div class="card-title">Your Contact QR</div>
 
-      <!-- Param breakdown table -->
-      <div id="paramTableWrap" style="display:none">
-        <table class="param-table">
-          <thead><tr><th>Parameter</th><th>Value</th></tr></thead>
-          <tbody id="paramTableBody"></tbody>
-        </table>
+      <div class="qr-empty" id="qrEmpty">Fill in your details to see your QR code…</div>
+
+      <div class="qr-live" id="qrLive">
+        <div class="qr-holder" id="qrHolder"></div>
+        <div class="qr-hint">Point a phone camera at this to add the contact.</div>
+        <div class="qr-dl-label">Download QR as</div>
+        <div class="qr-dl-row">
+          <button class="btn-qr-dl" data-qr-dl="png">🖼 PNG</button>
+          <button class="btn-qr-dl" data-qr-dl="svg">▧ SVG</button>
+          <button class="btn-qr-dl" data-qr-dl="pdf">📄 PDF</button>
+        </div>
+        <div class="qr-dl-status" id="qrDlStatus"></div>
       </div>
     </div>
 
-    <!-- Recent links -->
     <div class="card">
-      <div class="card-title">Recent Links</div>
-      <div id="recentList"><p class="recent-empty">No links generated yet.</p></div>
-      <div style="margin-top:14px;font-size:13px;color:var(--muted);">Making a business card? Try the <a href="vcard.html" style="color:var(--teal);text-decoration:none;font-weight:600;">vCard QR Generator →</a></div>
+      <div class="card-title">Preview</div>
+      <div id="preview"></div>
+      <div class="tool-nav" style="margin-top:14px;">Need campaign links? Try the <a href="index.html">UTM Builder →</a></div>
     </div>
-  </div>
-</div>
-
-<!-- Help section -->
-<div class="full-row">
-  <div class="card">
-    <button class="help-toggle" id="helpToggle">
-      <span class="arrow">▶</span> Naming Conventions Guide
-    </button>
-    <div class="help-body" id="helpBody">
-      <div class="help-row"><strong>source</strong> — Where the link lives. The platform or channel that hosts the link. Examples: <code>google</code>, <code>newsletter</code>, <code>linkedin</code></div>
-      <div class="help-row"><strong>medium</strong> — How it's delivered. The marketing mechanism or format. Examples: <code>cpc</code>, <code>email</code>, <code>paid-social</code></div>
-      <div class="help-row"><strong>campaign</strong> — The initiative or business goal. Maps to a specific push or promotion. Examples: <code>q3-enterprise-launch</code>, <code>ramadan-offer-2025</code></div>
-      <div class="help-row"><strong>content</strong> — The creative variant. Distinguish different ads, CTAs, or placements inside the same campaign. Examples: <code>hero-cta</code>, <code>sidebar-banner</code>, <code>rep-ahmed</code></div>
-      <div class="help-row"><strong>term</strong> — The paid keyword. Only needed for search campaigns. Examples: <code>legal-ai-ksa</code>, <code>contract-management-software</code></div>
-      <div class="help-examples">
-        <div class="example-block">
-          <div class="label">📢 Google Search Ad — Pricing Page</div>
-          source: <code>google</code> · medium: <code>cpc</code> · campaign: <code>q3-legal-ai-launch</code> · term: <code>legal-ai-saudi-arabia</code>
-        </div>
-        <div class="example-block">
-          <div class="label">📧 SDR Outbound Email — Demo Invite</div>
-          source: <code>outbound</code> · medium: <code>email</code> · campaign: <code>enterprise-demo-push</code> · content: <code>rep-khalid-sequence-2</code>
-        </div>
-        <div class="example-block">
-          <div class="label">📱 LinkedIn Paid — Two Creative Variants</div>
-          source: <code>linkedin</code> · medium: <code>paid-social</code> · campaign: <code>h2-renewals-push</code> · content: <code>video-testimonial</code> <em>vs</em> <code>static-feature-card</code>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- QR Modal -->
-<div class="qr-modal" id="qrModal">
-  <div class="qr-box">
-    <h3>QR Code</h3>
-    <div class="qr-holder" id="qrHolder"></div>
-    <div class="qr-dl-label">Download as</div>
-    <div class="qr-dl-row">
-      <button class="btn-qr-dl" data-qr-dl="png">🖼 PNG</button>
-      <button class="btn-qr-dl" data-qr-dl="svg">▧ SVG</button>
-      <button class="btn-qr-dl" data-qr-dl="pdf">📄 PDF</button>
-    </div>
-    <div class="qr-dl-status" id="qrDlStatus"></div>
-    <button class="btn-close-qr" id="btnCloseQr">Close</button>
   </div>
 </div>
 
@@ -2890,479 +2844,162 @@ var qrcode = function() {
 
 </script>
 <script>
-// ─── Utilities ────────────────────────────────────────────────────────────────
-
-const sanitize = v => v.trim().toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9\-_.]/g, '');
-
-const isValidUrl = v => {
-  try { const u = new URL(v); return u.protocol === 'https:'; }
-  catch { return false; }
-};
-
-const hasExistingUtms = url => {
-  try {
-    const u = new URL(url);
-    return ['utm_source','utm_medium','utm_campaign','utm_content','utm_term'].some(k => u.searchParams.has(k));
-  } catch { return false; }
-};
-
-const stripUtms = url => {
-  try {
-    const u = new URL(url);
-    ['utm_source','utm_medium','utm_campaign','utm_content','utm_term'].forEach(k => u.searchParams.delete(k));
-    return u.toString();
-  } catch { return url; }
-};
-
-const ts = () => {
-  const d = new Date();
-  return d.toLocaleDateString('en-GB', { day:'2-digit', month:'short' }) + ' ' +
-         d.toLocaleTimeString('en-GB', { hour:'2-digit', minute:'2-digit' });
-};
-
-// ─── DOM refs ─────────────────────────────────────────────────────────────────
 const $ = id => document.getElementById(id);
+const firstName=$('firstName'), lastName=$('lastName'), phone=$('phone'), email=$('email'),
+      title=$('title'), org=$('org'), website=$('website'),
+      btnVcf=$('btnVcf'), btnReset=$('btnReset'),
+      qrEmpty=$('qrEmpty'), qrLive=$('qrLive'), qrHolder=$('qrHolder'),
+      qrDlStatus=$('qrDlStatus'), preview=$('preview'), errEmail=$('errEmail');
 
-const destUrl     = $('destUrl');
-const srcSelect   = $('srcSelect');
-const medSelect   = $('medSelect');
-const srcCustom   = $('srcCustom');
-const medCustom   = $('medCustom');
-const srcCustomRow = $('srcCustomRow');
-const medCustomRow = $('medCustomRow');
-const campaign    = $('campaign');
-const content     = $('content');
-const term        = $('term');
-const outputUrl   = $('outputUrl');
-const paramTableWrap = $('paramTableWrap');
-const paramTableBody = $('paramTableBody');
-const warnBanner  = $('warnBanner');
-const recentList  = $('recentList');
+const val = el => (el.value || '').trim();
+const isValidEmail = v => !v || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
+const escapeHtml = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
-// ─── Custom dropdown logic ─────────────────────────────────────────────────────
+// vCard property escaping per RFC 6350: escape \ , ; and newlines.
+function vcardEscape(s){ return String(s).replace(/\\/g,'\\\\').replace(/\n/g,'\\n').replace(/,/g,'\\,').replace(/;/g,'\\;'); }
 
-srcSelect.addEventListener('change', () => {
-  srcCustomRow.classList.toggle('show', srcSelect.value === '__custom__');
-  if (srcSelect.value === '__custom__') { srcCustom.focus(); }
-  buildUrl();
-});
-medSelect.addEventListener('change', () => {
-  medCustomRow.classList.toggle('show', medSelect.value === '__custom__');
-  if (medSelect.value === '__custom__') { medCustom.focus(); }
-  buildUrl();
-});
-
-document.querySelectorAll('.btn-cancel-custom').forEach(btn => {
-  btn.addEventListener('click', () => {
-    const t = btn.dataset.target;
-    if (t === 'src') { srcSelect.value = ''; srcCustomRow.classList.remove('show'); srcCustom.value = ''; }
-    if (t === 'med') { medSelect.value = ''; medCustomRow.classList.remove('show'); medCustom.value = ''; }
-    buildUrl();
-  });
-});
-
-srcCustom.addEventListener('blur', () => { srcCustom.value = sanitize(srcCustom.value); buildUrl(); });
-medCustom.addEventListener('blur', () => { medCustom.value = sanitize(medCustom.value); buildUrl(); });
-srcCustom.addEventListener('input', buildUrl);
-medCustom.addEventListener('input', buildUrl);
-
-// ─── Sanitize-on-blur for text fields ─────────────────────────────────────────
-
-[campaign, content, term].forEach(el => {
-  el.addEventListener('input', () => {
-    const preview = $(el.id + 'Preview');
-    const s = sanitize(el.value);
-    preview.textContent = s && s !== el.value.trim().toLowerCase().replace(/\s+/g,'-') ? '→ ' + s : (s ? '' : '');
-    buildUrl();
-  });
-  el.addEventListener('blur', () => {
-    el.value = sanitize(el.value);
-    $(el.id + 'Preview').textContent = '';
-    buildUrl();
-  });
-});
-
-// Show live slug preview while typing
-campaign.addEventListener('input', () => {
-  const s = sanitize(campaign.value);
-  $('campaignPreview').textContent = s ? '→ ' + s : '';
-  buildUrl();
-});
-
-// ─── Destination URL — detect existing UTMs ───────────────────────────────────
-
-destUrl.addEventListener('input', () => {
-  const v = destUrl.value.trim();
-  warnBanner.classList.toggle('show', isValidUrl(v) && hasExistingUtms(v));
-  buildUrl();
-});
-
-$('btnStrip').addEventListener('click', () => {
-  destUrl.value = stripUtms(destUrl.value.trim());
-  warnBanner.classList.remove('show');
-  buildUrl();
-});
-
-// ─── Build URL ────────────────────────────────────────────────────────────────
-
-function getSource() {
-  return srcSelect.value === '__custom__' ? sanitize(srcCustom.value) : srcSelect.value;
-}
-function getMedium() {
-  return medSelect.value === '__custom__' ? sanitize(medCustom.value) : medSelect.value;
+// Build vCard 3.0 (widest phone support). First name is the minimum.
+function buildVcard(){
+  const fn = val(firstName);
+  if (!fn) return '';
+  if (!isValidEmail(val(email))) return '';
+  const ln = val(lastName);
+  const full = [fn, ln].filter(Boolean).join(' ');
+  const lines = ['BEGIN:VCARD','VERSION:3.0'];
+  lines.push('N:' + vcardEscape(ln) + ';' + vcardEscape(fn) + ';;;');
+  lines.push('FN:' + vcardEscape(full));
+  if (val(org))     lines.push('ORG:' + vcardEscape(val(org)));
+  if (val(title))   lines.push('TITLE:' + vcardEscape(val(title)));
+  if (val(phone))   lines.push('TEL;TYPE=CELL:' + vcardEscape(val(phone)));
+  if (val(email))   lines.push('EMAIL;TYPE=INTERNET:' + vcardEscape(val(email)));
+  if (val(website)) lines.push('URL:' + vcardEscape(val(website)));
+  lines.push('END:VCARD');
+  return lines.join('\r\n');
 }
 
-function buildUrl() {
-  const base    = destUrl.value.trim();
-  const source  = getSource();
-  const medium  = getMedium();
-  const camp    = sanitize(campaign.value);
-  const cont    = sanitize(content.value);
-  const trm     = sanitize(term.value);
+function renderPreview(){
+  const full = [val(firstName), val(lastName)].filter(Boolean).join(' ');
+  const rows = [['Name',full],['Phone',val(phone)],['Email',val(email)],['Title',val(title)],['Company',val(org)],['Website',val(website)]];
+  preview.innerHTML = rows.map(([k,v]) => {
+    const empty = !v;
+    return '<div class="preview-row'+(empty?' empty':'')+'"><span class="k">'+k+'</span><span class="v">'+(empty?'—':escapeHtml(v))+'</span></div>';
+  }).join('');
+}
 
-  // Clear output if missing required fields or invalid URL
-  if (!base || !source || !medium || !camp || !isValidUrl(base)) {
-    outputUrl.innerHTML = '<span class="output-placeholder">Fill in the required fields to generate your UTM URL…</span>';
-    paramTableWrap.style.display = 'none';
-    return;
+// ── QR engine (self-contained, uses inlined qrcode.js) ──
+let qrModel = null;
+const QR_QUIET = 4, QR_DARK = '#0B2545', QR_LIGHT = '#ffffff', QR_EXPORT_PX = 1024;
+
+function buildQrModel(text){ const qr=qrcode(0,'M'); qr.addData(text); qr.make(); return { count: qr.getModuleCount(), isDark:(r,c)=>qr.isDark(r,c) }; }
+function qrSvg(model, pxSize, dark, light){
+  const total = model.count + QR_QUIET*2, cell = pxSize/total; let rects='';
+  for(let r=0;r<model.count;r++) for(let c=0;c<model.count;c++){
+    if(!model.isDark(r,c)) continue;
+    const x=(c+QR_QUIET)*cell, y=(r+QR_QUIET)*cell;
+    rects += '<rect x="'+x.toFixed(3)+'" y="'+y.toFixed(3)+'" width="'+(cell+0.5).toFixed(3)+'" height="'+(cell+0.5).toFixed(3)+'"/>';
   }
-
-  try {
-    const u = new URL(base);
-    u.searchParams.set('utm_source',   source);
-    u.searchParams.set('utm_medium',   medium);
-    u.searchParams.set('utm_campaign', camp);
-    if (cont) u.searchParams.set('utm_content', cont);
-    if (trm)  u.searchParams.set('utm_term',    trm);
-    const result = u.toString();
-    outputUrl.textContent = result;
-    renderTable({ source, medium, camp, cont, trm });
-    return result;
-  } catch { /* invalid URL */ }
+  return '<svg xmlns="http://www.w3.org/2000/svg" width="'+pxSize+'" height="'+pxSize+'" viewBox="0 0 '+pxSize+' '+pxSize+'" shape-rendering="crispEdges"><rect width="'+pxSize+'" height="'+pxSize+'" fill="'+light+'"/><g fill="'+dark+'">'+rects+'</g></svg>';
 }
 
-function getCurrentUrl() {
-  const t = outputUrl.textContent;
-  return t && !t.includes('Fill in') ? t : null;
-}
-
-function renderTable({ source, medium, camp, cont, trm }) {
-  const rows = [
-    ['utm_source',   source],
-    ['utm_medium',   medium],
-    ['utm_campaign', camp],
-    ...(cont ? [['utm_content', cont]] : []),
-    ...(trm  ? [['utm_term',    trm]]  : []),
-  ];
-  paramTableBody.innerHTML = rows.map(([k,v]) =>
-    `<tr><td>${k}</td><td>${v}</td></tr>`
-  ).join('');
-  paramTableWrap.style.display = 'block';
-}
-
-// ─── Validation ───────────────────────────────────────────────────────────────
-
-function validate() {
-  let ok = true;
-
-  const showErr = (id, cond) => {
-    $(id).classList.toggle('show', cond);
-    if (cond) ok = false;
-  };
-
-  const urlVal = destUrl.value.trim();
-  showErr('errUrl', !urlVal || !isValidUrl(urlVal));
-  if (!urlVal || !isValidUrl(urlVal)) destUrl.classList.add('error');
-  else destUrl.classList.remove('error');
-
-  showErr('errSrc', !getSource());
-  showErr('errMed', !getMedium());
-  showErr('errCampaign', !sanitize(campaign.value));
-
-  return ok;
-}
-
-// ─── Copy ─────────────────────────────────────────────────────────────────────
-
-function copyUrl(btnEl) {
-  if (!validate()) return;
-  const url = getCurrentUrl();
-  if (!url) return;
-
-  navigator.clipboard.writeText(url).then(() => {
-    btnEl.textContent = btnEl === $('btnCopy') ? '✓ Copied!' : '✓ Copied!';
-    btnEl.classList.add('copied');
-    setTimeout(() => {
-      btnEl.textContent = btnEl === $('btnCopy') ? 'Copy URL' : '📋 Copy URL';
-      btnEl.classList.remove('copied');
-    }, 2000);
-    saveToRecent(url);
-  });
-}
-
-$('btnCopy').addEventListener('click',  () => copyUrl($('btnCopy')));
-$('btnCopy2').addEventListener('click', () => copyUrl($('btnCopy2')));
-
-// ─── Keyboard shortcut ────────────────────────────────────────────────────────
-document.addEventListener('keydown', e => {
-  if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') { e.preventDefault(); copyUrl($('btnCopy')); }
-});
-
-// ─── Reset ────────────────────────────────────────────────────────────────────
-$('btnReset').addEventListener('click', () => {
-  destUrl.value = '';
-  srcSelect.value = '';
-  medSelect.value = '';
-  srcCustom.value = '';
-  medCustom.value = '';
-  srcCustomRow.classList.remove('show');
-  medCustomRow.classList.remove('show');
-  campaign.value = '';
-  content.value = '';
-  term.value = '';
-  ['campaignPreview','contentPreview','termPreview'].forEach(id => $(id).textContent = '');
-  ['errUrl','errSrc','errMed','errCampaign'].forEach(id => $(id).classList.remove('show'));
-  destUrl.classList.remove('error');
-  warnBanner.classList.remove('show');
-  outputUrl.innerHTML = '<span class="output-placeholder">Fill in the form to generate your UTM URL…</span>';
-  paramTableWrap.style.display = 'none';
-});
-
-// ─── QR Code (self-contained: no external API, PNG/SVG/PDF export) ────────────
-// Uses the inlined Kazuhiko Arase qrcode.js. The module matrix is rendered to
-// SVG for on-screen display and exported to PNG/SVG/PDF entirely client-side.
-let qrModel = null;               // { count, isDark(r,c) }
-const QR_QUIET = 4;               // quiet-zone margin, in modules (spec minimum)
-const QR_DARK  = '#0B2545';       // brand navy; scans as black
-const QR_LIGHT = '#ffffff';
-const QR_EXPORT_PX = 1024;        // high-res export size
-
-function buildQrModel(text) {
-  const qr = qrcode(0, 'M');      // auto type + medium error correction
-  qr.addData(text);
-  qr.make();
-  return { count: qr.getModuleCount(), isDark: (r, c) => qr.isDark(r, c) };
-}
-
-// Build an SVG string sized to pxSize (modules + quiet zone). Colors configurable.
-function qrSvg(model, pxSize, dark, light) {
-  const total = model.count + QR_QUIET * 2;
-  const cell = pxSize / total;
-  let rects = '';
-  for (let r = 0; r < model.count; r++) {
-    for (let c = 0; c < model.count; c++) {
-      if (!model.isDark(r, c)) continue;
-      const x = (c + QR_QUIET) * cell;
-      const y = (r + QR_QUIET) * cell;
-      // +0.5 overlap avoids hairline gaps between modules when rasterized.
-      rects += `<rect x="${x.toFixed(3)}" y="${y.toFixed(3)}" width="${(cell + 0.5).toFixed(3)}" height="${(cell + 0.5).toFixed(3)}"/>`;
-    }
+function rerender(){
+  const emailOk = isValidEmail(val(email));
+  errEmail.classList.toggle('show', !emailOk);
+  renderPreview();
+  const vcard = buildVcard();
+  const ready = !!vcard;
+  btnVcf.disabled = !ready;
+  if (ready){
+    qrModel = buildQrModel(vcard);
+    qrHolder.innerHTML = qrSvg(qrModel, 220, QR_DARK, QR_LIGHT);
+    qrEmpty.style.display = 'none';
+    qrLive.classList.add('show');
+  } else {
+    qrModel = null;
+    qrLive.classList.remove('show');
+    qrEmpty.style.display = 'block';
   }
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="${pxSize}" height="${pxSize}" viewBox="0 0 ${pxSize} ${pxSize}" shape-rendering="crispEdges">` +
-    `<rect width="${pxSize}" height="${pxSize}" fill="${light}"/>` +
-    `<g fill="${dark}">${rects}</g></svg>`;
 }
 
-$('btnQr').addEventListener('click', () => {
-  const url = getCurrentUrl();
-  if (!url) { alert('Generate a valid URL first.'); return; }
-  qrModel = buildQrModel(url);
-  $('qrHolder').innerHTML = qrSvg(qrModel, 200, QR_DARK, QR_LIGHT);
-  $('qrDlStatus').textContent = '';
-  $('qrModal').classList.add('show');
-});
-$('btnCloseQr').addEventListener('click',  () => $('qrModal').classList.remove('show'));
-$('qrModal').addEventListener('click', e => { if (e.target === $('qrModal')) $('qrModal').classList.remove('show'); });
+[firstName,lastName,phone,email,title,org,website].forEach(el => el.addEventListener('input', rerender));
+btnReset.addEventListener('click', () => { [firstName,lastName,phone,email,title,org,website].forEach(el=>el.value=''); rerender(); });
 
-// ── Download helpers ─────────────────────────────────────────────────────────
-function triggerDownload(blob, filename) {
-  const objectUrl = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = objectUrl; a.download = filename;
-  document.body.appendChild(a); a.click(); document.body.removeChild(a);
-  URL.revokeObjectURL(objectUrl);
+// ── Downloads ──
+function triggerDownload(blob, filename){
+  const u=URL.createObjectURL(blob); const a=document.createElement('a');
+  a.href=u; a.download=filename; document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(u);
 }
-function flashQrStatus(msg) {
-  const el = $('qrDlStatus'); el.textContent = msg;
-  setTimeout(() => { if (el.textContent === msg) el.textContent = ''; }, 2500);
+function flashDl(msg){ qrDlStatus.textContent=msg; setTimeout(()=>{ if(qrDlStatus.textContent===msg) qrDlStatus.textContent=''; },2500); }
+function fileStem(){
+  const stem=[val(firstName),val(lastName)].filter(Boolean).join('-').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'');
+  return stem || 'contact';
 }
-
-// Rasterize an SVG string to a PNG data URL via canvas.
-function svgToPngDataUrl(svgString, px) {
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    const svgBlob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
-    const url = URL.createObjectURL(svgBlob);
-    img.onload = () => {
-      const canvas = document.createElement('canvas');
-      canvas.width = px; canvas.height = px;
-      const ctx = canvas.getContext('2d');
-      ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, px, px);
-      ctx.drawImage(img, 0, 0, px, px);
-      URL.revokeObjectURL(url);
-      try { resolve(canvas.toDataURL('image/png')); } catch (e) { reject(e); }
-    };
-    img.onerror = (e) => { URL.revokeObjectURL(url); reject(e); };
-    img.src = url;
+function svgToPngDataUrl(svgString, px){
+  return new Promise((resolve,reject)=>{
+    const img=new Image(); const blob=new Blob([svgString],{type:'image/svg+xml;charset=utf-8'}); const url=URL.createObjectURL(blob);
+    img.onload=()=>{ const cv=document.createElement('canvas'); cv.width=px; cv.height=px; const ctx=cv.getContext('2d');
+      ctx.fillStyle='#ffffff'; ctx.fillRect(0,0,px,px); ctx.drawImage(img,0,0,px,px); URL.revokeObjectURL(url);
+      try{ resolve(cv.toDataURL('image/png')); }catch(e){ reject(e); } };
+    img.onerror=e=>{ URL.revokeObjectURL(url); reject(e); }; img.src=url;
   });
 }
-function dataUrlToUint8(dataUrl) {
-  const bin = atob(dataUrl.split(',')[1]);
-  const bytes = new Uint8Array(bin.length);
-  for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
-  return bytes;
-}
-// Read a rendered PNG data URL into an 8-bit grayscale buffer.
-function pngDataUrlToGray(dataUrl, px) {
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    img.onload = () => {
-      const canvas = document.createElement('canvas');
-      canvas.width = px; canvas.height = px;
-      const ctx = canvas.getContext('2d');
-      ctx.drawImage(img, 0, 0, px, px);
-      const data = ctx.getImageData(0, 0, px, px).data;
-      const gray = new Uint8Array(px * px);
-      for (let i = 0, p = 0; i < data.length; i += 4, p++) {
-        gray[p] = (data[i] * 0.299 + data[i + 1] * 0.587 + data[i + 2] * 0.114) | 0;
-      }
-      resolve({ w: px, h: px, gray });
-    };
-    img.onerror = reject;
-    img.src = dataUrl;
+function dataUrlToUint8(dataUrl){ const bin=atob(dataUrl.split(',')[1]); const b=new Uint8Array(bin.length); for(let i=0;i<bin.length;i++) b[i]=bin.charCodeAt(i); return b; }
+function pngDataUrlToGray(dataUrl, px){
+  return new Promise((resolve,reject)=>{
+    const img=new Image(); img.onload=()=>{ const cv=document.createElement('canvas'); cv.width=px; cv.height=px; const ctx=cv.getContext('2d');
+      ctx.drawImage(img,0,0,px,px); const data=ctx.getImageData(0,0,px,px).data; const gray=new Uint8Array(px*px);
+      for(let i=0,p=0;i<data.length;i+=4,p++) gray[p]=(data[i]*0.299+data[i+1]*0.587+data[i+2]*0.114)|0;
+      resolve({w:px,h:px,gray}); };
+    img.onerror=reject; img.src=dataUrl;
   });
 }
-// Wrap raw bytes in an uncompressed zlib stream (deflate "stored" blocks) so we
-// can use /FlateDecode with no compression lib.
-function zlibStore(bytes) {
-  const MAX = 65535, out = [];
-  out.push(0x78, 0x01);
-  for (let i = 0; i < bytes.length; i += MAX) {
-    const chunk = bytes.subarray(i, Math.min(i + MAX, bytes.length));
-    const last = (i + MAX >= bytes.length) ? 1 : 0;
-    const len = chunk.length, nlen = (~len) & 0xffff;
-    out.push(last, len & 0xff, (len >> 8) & 0xff, nlen & 0xff, (nlen >> 8) & 0xff);
-    for (let j = 0; j < len; j++) out.push(chunk[j]);
-  }
-  let a = 1, b = 0;
-  for (let i = 0; i < bytes.length; i++) { a = (a + bytes[i]) % 65521; b = (b + a) % 65521; }
-  const adler = (b << 16) | a;
-  out.push((adler >>> 24) & 0xff, (adler >>> 16) & 0xff, (adler >>> 8) & 0xff, adler & 0xff);
-  return new Uint8Array(out);
+function zlibStore(bytes){
+  const MAX=65535, out=[]; out.push(0x78,0x01);
+  for(let i=0;i<bytes.length;i+=MAX){ const chunk=bytes.subarray(i,Math.min(i+MAX,bytes.length)); const last=(i+MAX>=bytes.length)?1:0; const len=chunk.length, nlen=(~len)&0xffff;
+    out.push(last,len&0xff,(len>>8)&0xff,nlen&0xff,(nlen>>8)&0xff); for(let j=0;j<len;j++) out.push(chunk[j]); }
+  let a=1,b=0; for(let i=0;i<bytes.length;i++){ a=(a+bytes[i])%65521; b=(b+a)%65521; } const adler=(b<<16)|a;
+  out.push((adler>>>24)&0xff,(adler>>>16)&0xff,(adler>>>8)&0xff,adler&0xff); return new Uint8Array(out);
 }
-// Single-page PDF embedding the QR as a DeviceGray image XObject. No jsPDF.
-function buildQrPdf(gray, w, h) {
-  const stream = zlibStore(gray);
-  const parts = [], offsets = []; let length = 0;
-  const latin1 = (s) => { const u = new Uint8Array(s.length); for (let i = 0; i < s.length; i++) u[i] = s.charCodeAt(i) & 0xff; return u; };
-  const push = (u8) => { parts.push(u8); length += u8.length; };
-  const pushStr = (s) => push(latin1(s));
+function buildQrPdf(gray,w,h){
+  const stream=zlibStore(gray); const parts=[], offsets=[]; let length=0;
+  const latin1=s=>{ const u=new Uint8Array(s.length); for(let i=0;i<s.length;i++) u[i]=s.charCodeAt(i)&0xff; return u; };
+  const push=u8=>{ parts.push(u8); length+=u8.length; }; const pushStr=s=>push(latin1(s));
   pushStr('%PDF-1.4\n%\xE2\xE3\xCF\xD3\n');
-  const PAGE = 300, IMG = 240, M = (PAGE - IMG) / 2;
-  const obj = (n, body) => { offsets[n] = length; pushStr(n + ' 0 obj\n'); if (body) pushStr(body); };
-  obj(1, '<< /Type /Catalog /Pages 2 0 R >>\nendobj\n');
-  obj(2, '<< /Type /Pages /Kids [3 0 R] /Count 1 >>\nendobj\n');
-  obj(3, '<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ' + PAGE + ' ' + PAGE + ']' +
-         ' /Resources << /XObject << /Im0 5 0 R >> >> /Contents 4 0 R >>\nendobj\n');
-  const content = 'q\n' + IMG + ' 0 0 ' + IMG + ' ' + M + ' ' + M + ' cm\n/Im0 Do\nQ\n';
-  obj(4, '<< /Length ' + content.length + ' >>\nstream\n' + content + '\nendstream\nendobj\n');
-  offsets[5] = length;
-  pushStr('5 0 obj\n<< /Type /XObject /Subtype /Image /Width ' + w + ' /Height ' + h +
-          ' /ColorSpace /DeviceGray /BitsPerComponent 8 /Filter /FlateDecode /Length ' + stream.length + ' >>\nstream\n');
-  push(stream);
-  pushStr('\nendstream\nendobj\n');
-  const xrefStart = length, n = 6;
-  let xref = 'xref\n0 ' + n + '\n0000000000 65535 f \n';
-  for (let i = 1; i < n; i++) xref += String(offsets[i]).padStart(10, '0') + ' 00000 n \n';
-  pushStr(xref);
-  pushStr('trailer\n<< /Size ' + n + ' /Root 1 0 R >>\nstartxref\n' + xrefStart + '\n%%EOF');
-  return new Blob(parts, { type: 'application/pdf' });
+  const PAGE=300, IMG=240, M=(PAGE-IMG)/2;
+  const obj=(n,body)=>{ offsets[n]=length; pushStr(n+' 0 obj\n'); if(body) pushStr(body); };
+  obj(1,'<< /Type /Catalog /Pages 2 0 R >>\nendobj\n');
+  obj(2,'<< /Type /Pages /Kids [3 0 R] /Count 1 >>\nendobj\n');
+  obj(3,'<< /Type /Page /Parent 2 0 R /MediaBox [0 0 '+PAGE+' '+PAGE+'] /Resources << /XObject << /Im0 5 0 R >> >> /Contents 4 0 R >>\nendobj\n');
+  const content='q\n'+IMG+' 0 0 '+IMG+' '+M+' '+M+' cm\n/Im0 Do\nQ\n';
+  obj(4,'<< /Length '+content.length+' >>\nstream\n'+content+'\nendstream\nendobj\n');
+  offsets[5]=length;
+  pushStr('5 0 obj\n<< /Type /XObject /Subtype /Image /Width '+w+' /Height '+h+' /ColorSpace /DeviceGray /BitsPerComponent 8 /Filter /FlateDecode /Length '+stream.length+' >>\nstream\n');
+  push(stream); pushStr('\nendstream\nendobj\n');
+  const xrefStart=length, n=6; let xref='xref\n0 '+n+'\n0000000000 65535 f \n';
+  for(let i=1;i<n;i++) xref+=String(offsets[i]).padStart(10,'0')+' 00000 n \n';
+  pushStr(xref); pushStr('trailer\n<< /Size '+n+' /Root 1 0 R >>\nstartxref\n'+xrefStart+'\n%%EOF');
+  return new Blob(parts,{type:'application/pdf'});
 }
-async function pngDataUrlToPdf(dataUrl, w, h) {
-  const g = await pngDataUrlToGray(dataUrl, w);
-  return buildQrPdf(g.gray, g.w, g.h);
-}
+async function pngDataUrlToPdf(dataUrl,w){ const g=await pngDataUrlToGray(dataUrl,w); return buildQrPdf(g.gray,g.w,g.h); }
 
-async function downloadQr(format) {
-  if (!qrModel) return;
-  const camp = sanitize(campaign.value) || 'utm-link';
-  try {
-    const svg = qrSvg(qrModel, QR_EXPORT_PX, '#000000', '#ffffff');
-    if (format === 'svg') {
-      triggerDownload(new Blob([svg], { type: 'image/svg+xml' }), 'qr-' + camp + '.svg');
-      flashQrStatus('SVG downloaded');
-    } else if (format === 'png') {
-      const dataUrl = await svgToPngDataUrl(svg, QR_EXPORT_PX);
-      triggerDownload(new Blob([dataUrlToUint8(dataUrl)], { type: 'image/png' }), 'qr-' + camp + '.png');
-      flashQrStatus('PNG downloaded');
-    } else if (format === 'pdf') {
-      const dataUrl = await svgToPngDataUrl(svg, QR_EXPORT_PX);
-      const pdfBlob = await pngDataUrlToPdf(dataUrl, QR_EXPORT_PX, QR_EXPORT_PX);
-      triggerDownload(pdfBlob, 'qr-' + camp + '.pdf');
-      flashQrStatus('PDF downloaded');
-    }
-  } catch (err) {
-    console.error('QR download failed', err);
-    flashQrStatus('Download failed');
-  }
+async function downloadQr(format){
+  if(!qrModel) return; const stem=fileStem();
+  try{
+    const svg=qrSvg(qrModel,QR_EXPORT_PX,'#000000','#ffffff');
+    if(format==='svg'){ triggerDownload(new Blob([svg],{type:'image/svg+xml'}),'contact-qr-'+stem+'.svg'); flashDl('SVG downloaded'); }
+    else if(format==='png'){ const d=await svgToPngDataUrl(svg,QR_EXPORT_PX); triggerDownload(new Blob([dataUrlToUint8(d)],{type:'image/png'}),'contact-qr-'+stem+'.png'); flashDl('PNG downloaded'); }
+    else if(format==='pdf'){ const d=await svgToPngDataUrl(svg,QR_EXPORT_PX); const pdf=await pngDataUrlToPdf(d,QR_EXPORT_PX); triggerDownload(pdf,'contact-qr-'+stem+'.pdf'); flashDl('PDF downloaded'); }
+  }catch(err){ console.error('QR download failed',err); flashDl('Download failed'); }
 }
-document.getElementById('qrModal').addEventListener('click', (e) => {
-  const btn = e.target.closest('[data-qr-dl]');
-  if (btn) downloadQr(btn.getAttribute('data-qr-dl'));
+qrLive.addEventListener('click', e => { const btn=e.target.closest('[data-qr-dl]'); if(btn) downloadQr(btn.getAttribute('data-qr-dl')); });
+
+// .vcf download
+btnVcf.addEventListener('click', () => {
+  const vcard=buildVcard(); if(!vcard) return;
+  triggerDownload(new Blob([vcard],{type:'text/vcard;charset=utf-8'}), fileStem()+'.vcf');
+  const orig=btnVcf.textContent; btnVcf.textContent='✓ Downloaded!'; setTimeout(()=>{ btnVcf.textContent=orig; },2000);
 });
 
-// ─── Recent Links (localStorage, max 20) ─────────────────────────────────────
-const STORAGE_KEY = 'qanoniah_utm_recent';
-
-function loadRecent() {
-  try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; }
-  catch { return []; }
-}
-
-function saveToRecent(url) {
-  const camp = sanitize(campaign.value) || 'untitled';
-  const items = loadRecent().filter(i => i.url !== url); // dedupe
-  items.unshift({ url, campaign: camp, ts: ts() });
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(items.slice(0, 20)));
-  renderRecent();
-}
-
-function renderRecent() {
-  const items = loadRecent();
-  if (!items.length) {
-    recentList.innerHTML = '<p class="recent-empty">No links generated yet.</p>';
-    return;
-  }
-  recentList.innerHTML = items.map((item, idx) => `
-    <div class="recent-item">
-      <div class="recent-info">
-        <div class="recent-campaign">${item.campaign}</div>
-        <div class="recent-url">${item.url}</div>
-        <div class="recent-ts">${item.ts}</div>
-      </div>
-      <button class="btn-recopy" data-idx="${idx}">Copy</button>
-    </div>
-  `).join('');
-
-  recentList.querySelectorAll('.btn-recopy').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const url = items[btn.dataset.idx].url;
-      navigator.clipboard.writeText(url).then(() => {
-        btn.textContent = '✓';
-        btn.classList.add('copied');
-        setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 2000);
-      });
-    });
-  });
-}
-
-renderRecent();
-
-// ─── Help toggle ──────────────────────────────────────────────────────────────
-$('helpToggle').addEventListener('click', () => {
-  const open = $('helpBody').classList.toggle('show');
-  $('helpToggle').classList.toggle('open', open);
-});
+rerender();
 </script>
 </body>
 </html>
