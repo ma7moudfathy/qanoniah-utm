@@ -39,12 +39,14 @@
     gap: 14px;
   }
   .logo {
-    width: 34px; height: 34px;
-    background: var(--teal);
-    border-radius: 8px;
+    width: 38px; height: 38px;
+    background: #fff;
+    border-radius: 9px;
     display: flex; align-items: center; justify-content: center;
     flex-shrink: 0;
+    overflow: hidden;
   }
+  .logo img { width: 100%; height: 100%; object-fit: contain; display: block; }
   .logo svg { width: 18px; height: 18px; fill: #fff; }
   header h1 { color: #fff; font-size: 16px; font-weight: 600; line-height: 1.3; }
   header p  { color: #94A3B8; font-size: 13px; margin-top: 1px; }
@@ -412,7 +414,7 @@
 
 <header>
   <div class="logo">
-    <svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+    <img src="qanoniah-logo.jpg" alt="Qanoniah logo">
   </div>
   <div>
     <h1>Qanoniah UTM Builder</h1>
