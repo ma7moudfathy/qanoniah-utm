@@ -57,6 +57,10 @@
     grid-template-columns: 1fr 1fr;
     gap: 20px;
   }
+  /* Grid children default to min-width:auto, which lets a long unbreakable
+     URL force a column wider than 1fr and blow the layout out horizontally.
+     Pinning min-width:0 keeps both columns inside the 1080px container. */
+  .container > * { min-width: 0; }
   @media (max-width: 760px) {
     .container { grid-template-columns: 1fr; }
   }
@@ -273,7 +277,7 @@
     color: var(--text);
   }
   .param-table td:first-child { color: var(--muted); font-size: 12px; }
-  .param-table td:last-child { font-family: 'Courier New', monospace; font-size: 12px; color: var(--navy); font-weight: 600; }
+  .param-table td:last-child { font-family: 'Courier New', monospace; font-size: 12px; color: var(--navy); font-weight: 600; word-break: break-all; }
   .param-table tr:hover td { background: var(--teal-bg); }
 
   /* QR modal */
@@ -492,7 +496,7 @@
   </div>
 
   <!-- RIGHT: Output -->
-  <div style="display:flex;flex-direction:column;gap:20px;">
+  <div style="display:flex;flex-direction:column;gap:20px;min-width:0;">
     <!-- Live URL output -->
     <div class="card">
       <div class="card-title">Generated URL</div>
